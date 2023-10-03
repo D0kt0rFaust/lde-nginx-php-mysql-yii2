@@ -4,3 +4,5 @@
 *.override.yml
 src/*
 !src/.gitkeep
+logs/*
+!logs/.gitkeep

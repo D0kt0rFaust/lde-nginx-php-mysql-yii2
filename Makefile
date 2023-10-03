@@ -1,43 +1,46 @@
-.SILENT: 
-	include ./.env
+.SILENT:
+
+include .env
 #
-### Приложение бэк
+### Главный сервис бэка
 #
 back-git-clone:
-	echo "clone repository for: back"
-	git clone ${GIT_HOST}:${GIT_REPOSITORY_BACK} -b ${GIT_BRANCH_BACK} ${LOCAL_CODE_PATH_BACK}
+	echo "Clone repository for: back"
+	git clone ${GIT_REPOSITORY_BACK} -b ${GIT_BRANCH_BACK} ${LOCAL_CODE_PATH_BACK}
 #
 back-rm-code:
-	echo "remove code for: back"
+	echo "Remove code for: back"
 	rm -rf ${LOCAL_CODE_PATH_BACK}
 #
 back-env-copy:
-	echo "back-env-copy: skip"
+	echo "Back-env-copy: skip"
 #
 back-packages-install:
-	echo "back-packages-install: skip"
+	echo "Back-packages-install: skip"
 #
 back-migration:
-	echo "back-migration: skip"
+	echo "Back-migration: skip"
 #
-### Приложение фронт
+### Заготовка под фронт
 #
 front-git-clone:
-	echo "clone repository for: front"
-	git clone ${GIT_HOST}:${GIT_REPOSITORY_FRONT} -b ${GIT_BRANCH_FRONT} ${LOCAL_CODE_PATH_FRONT}
+	echo "Front-git-clone: skip"
+	# echo "Clone repository for: front"
+	# git clone ${GIT_REPOSITORY_FRONT} -b ${GIT_BRANCH_FRONT} ${LOCAL_CODE_PATH_FRONT}
 #
 front-rm-code:
-	echo "remove code for: front"
-	rm -rf ${LOCAL_CODE_PATH_FRONT}
+	echo "Front-rm-code: skip"
+	# echo "Remove code for: front"
+	# rm -rf ${LOCAL_CODE_PATH_FRONT}
 #
 front-env-copy:
-	echo "front-env-copy: skip"
+	echo "Front-env-copy: skip"
 #
 front-packages-install:
-	echo "front-packages-install: skip"
+	echo "Front-packages-install: skip"
 #
 front-migration:
-	echo "bfront-migration: skip"
+	echo "Front-migration: skip"
 #
 ### Команды, общие для приложений
 #
@@ -45,6 +48,11 @@ git-clone:
 	make \
 		back-git-clone \
 		front-git-clone
+# 
+rm-code:
+	make \
+		back-rm-code \
+		front-rm-code
 # 
 env-copy:
 	make \
@@ -88,5 +96,6 @@ clean: clean-build-cache
 #
 lde: git-clone env-copy up packages-install migration
 	echo "Local Docker Environment installed" && \
+	echo "Phpmyadmin: http://127.0.0.1/pma/" && \
 	echo "Backend: http://127.0.0.1/backend/" && \
 	echo "Frontend: http://127.0.0.1/"

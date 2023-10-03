@@ -1,0 +1,45 @@
+#version: '3.9'
+#
+#x-app-args: &app-args
+#  - USER=${USER}
+#  - UID=${UID}
+
+#networks:
+#  default:
+#    driver: bridge
+
+#services:
+#  ptour-back-npm:
+#    build:
+#      context: "."
+#      dockerfile: ./images/node-18/Dockerfile
+#      args: *app-args
+#    working_dir: /srv/app
+#    tty: true
+#    volumes:
+#      - ${SSH_PATH}:/home/node/.ssh:rw
+#      - ${LOCAL_CODE_PATH_TAGME_BACK}:/srv/app
+#    networks:
+#      - default
+#    labels:
+#      traefik.enable: false
+  
+
+#  ptour-front-npm:
+#    build:
+#      context: "."
+#      dockerfile: ./images/node-18/Dockerfile
+#      args: *app-args
+#    working_dir: /srv/app
+#    environment:
+#      - NODE_ENV=production
+#      - NEXT_TELEMETRY_DISABLED=1
+#    tty: true
+#    volumes:
+#      - ${SSH_PATH}:/home/node/.ssh:rw
+#      - ${LOCAL_CODE_PATH_TAGME_FRONT}:/srv/app
+#    networks:
+#      - default
+#    labels:
+#      traefik.enable: false
+#
