@@ -62,7 +62,7 @@ env-copy:
 packages-install:
 	make \
 		back-packages-install \
-		font-packages-install
+		front-packages-install
 # 
 migration:
 	make \
