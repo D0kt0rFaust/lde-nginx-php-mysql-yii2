@@ -1,0 +1,4 @@
+CREATE DATABASE IF NOT EXISTS `back`;
+CREATE USER 'user'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';
+GRANT ALL PRIVILEGES ON *.* TO 'user'@'%';
+FLUSH PRIVILEGES;
