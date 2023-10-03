@@ -5,42 +5,42 @@ include .env
 ### Главный сервис бэка
 #
 back-git-clone:
-	echo "Clone repository for: back"
+	echo "Clone repository: back"
 	git clone ${GIT_REPOSITORY_BACK} -b ${GIT_BRANCH_BACK} ${LOCAL_CODE_PATH_BACK}
 #
 back-rm-code:
-	echo "Remove code for: back"
+	echo "Remove code: back"
 	rm -rf ${LOCAL_CODE_PATH_BACK}
 #
 back-env-copy:
-	echo "Back-env-copy: skip"
+	echo "back-env-copy: skip"
 #
 back-packages-install:
-	echo "Back-packages-install: skip"
+	echo "back-packages-install: skip"
 #
 back-migration:
-	echo "Back-migration: skip"
+	echo "back-migration: skip"
 #
 ### Заготовка под фронт
 #
 front-git-clone:
-	echo "Front-git-clone: skip"
-	# echo "Clone repository for: front"
+	echo "front-git-clone: skip"
+	# echo "Clone repository: front"
 	# git clone ${GIT_REPOSITORY_FRONT} -b ${GIT_BRANCH_FRONT} ${LOCAL_CODE_PATH_FRONT}
 #
 front-rm-code:
-	echo "Front-rm-code: skip"
-	# echo "Remove code for: front"
+	echo "front-rm-code: skip"
+	# echo "Remove code: front"
 	# rm -rf ${LOCAL_CODE_PATH_FRONT}
 #
 front-env-copy:
-	echo "Front-env-copy: skip"
+	echo "front-env-copy: skip"
 #
 front-packages-install:
-	echo "Front-packages-install: skip"
+	echo "front-packages-install: skip"
 #
 front-migration:
-	echo "Front-migration: skip"
+	echo "front-migration: skip"
 #
 ### Команды, общие для приложений
 #
