@@ -4,20 +4,19 @@ x-app-args: &app-args
   - USER=${USER}
   - UID=${UID}
 
-
 #x-app-logging: &app-logging
 #  driver: "json-file"
 #  options:
 #    max-size: "12Mb"
 #    max-file: "1"
-#
+
 volumes:
   mysql-data:
   elastic-data:
   # mongo-data:
   # kibana-data:
   # rabbitmq-data:
-#
+
 networks:
  default:
    driver: bridge
@@ -27,9 +26,10 @@ networks:
  traefik-net:
    name: traefik_net
    external: true
-#
+
 services:
-  # Главный сервис бэка
+
+  # Php бэкенд
   app-back:
     build:
       context: .
@@ -43,7 +43,8 @@ services:
     networks:
       - default
       - traefik-net
-  #
+
+  # Web-server 
   nginx:
     image: nginx:latest
     # ports:
@@ -63,6 +64,10 @@ services:
       - "traefik.http.routers.nginx.rule=Host(`${LOCAL_HOSTNAME_BACK}`)"
       - "traefik.docker.network=traefik_net"
       # - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      - "traefik.http.routers.nginx.middlewares.compress=true"
+      - "traefik.http.routers.nginx.middlewares=tagme-main-headers"
+      - "traefik.http.middlewares.tagme-main-headers.headers.accessControlAllowHeaders=authorization,x-experience-api-version,content-type,cache-control,x-requested-with,origin,X-CSRF-Token"
+
   #
   mysql:
     image: mysql:8.0
@@ -89,6 +94,7 @@ services:
       - default
     labels:
       traefik.enable: false
+
   #
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:5.1.3
@@ -104,11 +110,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_net"
-      # HTTP
       - "traefik.http.routers.phpmyadmin.entrypoints=web"
       - "traefik.http.routers.phpmyadmin.rule=Host(`${LOCAL_HOSTNAME_PMA}`)"
       - "traefik.http.routers.phpmyadmin.middlewares.compress=true"
       # - "traefik.http.services.phpmyadmin.loadbalancer.server.port=80"
+
   #
   elasticsearch:
     image: elastic/elasticsearch:7.17.12
@@ -128,7 +134,7 @@ services:
       nofile:
         soft: 65535
         hard: 65535
-  #
+
   # mongo-db:
   #   image: mongo:6.0
   #   ports:
@@ -140,7 +146,7 @@ services:
   #     nofile:
   #       soft: 65535
   #       hard: 65535
-  #
+
   # rabbitmq:
   #   image: rabbitmq:3.10-management
   #   healthcheck:
@@ -155,9 +161,11 @@ services:
   #     # - RABBITMQ_DEFAULT_USER=local
   #     # - RABBITMQ_DEFAULT_PASS=local
   #     # - RABBITMQ_DEFAULT_VHOST=/local
-  # #
+
   # redis:
   #   image: redis:7-alpine
+
+  # Балансир
   traefik:
     image: traefik:2.10.4
     # logging: *app-logging
@@ -171,7 +179,7 @@ services:
       - --entrypoints.web.address=:80
     ports:
       - "80:80"
-      # - "8080:8080"
+      - "8080:8080"
     networks:
       traefik-net:
         aliases:
@@ -184,9 +192,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_net"
-      # HTTP
       - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.rule=Host(`${LOCAL_HOSTNAME_TRAEFIK}`)"
-      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
