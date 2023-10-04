@@ -12,26 +12,24 @@ x-app-args: &app-args
 #    max-file: "1"
 #
 volumes:
-  mysql-db-data:
+  mysql-data:
   elastic-data:
-  # mongo-db-data:
+  # mongo-data:
   # kibana-data:
   # rabbitmq-data:
 #
-#networks:
-#  default:
-#    driver: bridge
-#    ipam:
-#      config:
-#        - subnet: 11.14.0.0/16
-#  traefik-net:
-#    name: traefik_net
-#    external: true
-
+networks:
+ default:
+   driver: bridge
+   ipam:
+     config:
+       - subnet: 11.14.0.0/16
+ traefik-net:
+   name: traefik_net
+   external: true
+#
 services:
-  #
-  ### Главный сервис бэка
-  #
+  # Главный сервис бэка
   app-back:
     build:
       context: .
@@ -42,17 +40,29 @@ services:
       - elasticsearch
     volumes:
       - ${LOCAL_CODE_PATH_BACK}:/var/www
+    networks:
+      - default
+      - traefik-net
   #
   nginx:
     image: nginx:latest
-    ports:
-      - "80:80"
-      - "443:443"
+    # ports:
+    #   - "80:80"
+    #   - "443:443"
     volumes:
       - ./etc/nginx/:/etc/nginx/conf.d/
       - ${LOCAL_CODE_PATH_BACK}:/var/www
     depends_on:
       - app-back
+    networks:
+      - default
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.entrypoints=web"
+      - "traefik.http.routers.nginx.rule=Host(`${LOCAL_HOSTNAME_BACK}`)"
+      - "traefik.docker.network=traefik_net"
+      # - "traefik.http.services.nginx.loadbalancer.server.port=80"
   #
   mysql:
     image: mysql:8.0
@@ -71,22 +81,34 @@ services:
         soft: 65535
         hard: 65535
     volumes:
-      - mysql-db-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
       - ./init/mysql/:/docker-entrypoint-initdb.d/
       - ./etc/mysql/:/etc/mysql/conf.d/
     command: mysqld --sql_mode="ONLY_FULL_GROUP_BY,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    networks:
+      - default
+    labels:
+      traefik.enable: false
   #
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:5.1.3
+    # logging: *app-logging
     environment:
-      - PMA_HOST=mysql
-      - PMA_ABSOLUTE_URI=http://localhost/pma/
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
-      - MYSQL_USER=${MYSQL_USER:-user}
-      - MYSQL_PASSWORD=${MYSQL_USER_PASSWORD:-pass}
-      - UPLOAD_LIMIT=100000000
-    depends_on:
-      - mysql
+      - TZ=Europe/Moscow
+      - PMA_HOSTS=mysql
+      - PMA_PORT=3306
+      - PMA_ABSOLUTE_URI=http://${LOCAL_HOSTNAME_PMA}
+    networks:
+      - default
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_net"
+      # HTTP
+      - "traefik.http.routers.phpmyadmin.entrypoints=web"
+      - "traefik.http.routers.phpmyadmin.rule=Host(`${LOCAL_HOSTNAME_PMA}`)"
+      - "traefik.http.routers.phpmyadmin.middlewares.compress=true"
+      # - "traefik.http.services.phpmyadmin.loadbalancer.server.port=80"
   #
   elasticsearch:
     image: elastic/elasticsearch:7.17.12
@@ -136,3 +158,35 @@ services:
   # #
   # redis:
   #   image: redis:7-alpine
+  traefik:
+    image: traefik:2.10.4
+    # logging: *app-logging
+    container_name: traefik
+    # restart: always
+    command:
+      - --log.level=ERROR
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+      # - "8080:8080"
+    networks:
+      traefik-net:
+        aliases:
+          - ${LOCAL_HOSTNAME_BACK}
+          # - ${LOCAL_HOSTNAME_FRONT}
+      default:
+        aliases:
+          - ${LOCAL_HOSTNAME_BACK}
+          # - ${LOCAL_HOSTNAME_FRONT}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_net"
+      # HTTP
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.rule=Host(`${LOCAL_HOSTNAME_TRAEFIK}`)"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

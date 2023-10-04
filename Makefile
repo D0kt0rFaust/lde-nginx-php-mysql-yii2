@@ -1,6 +1,21 @@
 .SILENT:
-
+#
 include .env
+#
+### Hosts
+#
+traefik-hosts:
+	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}' | sudo tee -a "${HOSTS}"
+# mailhog-hosts:
+# 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}' | sudo tee -a "${HOSTS}"
+# kibana-hosts:
+# 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_KIBANA}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_KIBANA}' | sudo tee -a "${HOSTS}"
+pma-hosts:
+	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_PMA}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_PMA}' | sudo tee -a "${HOSTS}"
+# redis-commander-hosts:
+# 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}' | sudo tee -a "${HOSTS}"
+back-hosts:
+	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_BACK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_BACK}' | sudo tee -a "${HOSTS}"
 #
 ### Главный сервис бэка
 #
@@ -71,14 +86,22 @@ migration:
 #
 ### Управляющие команды
 #
+hosts:
+	make \
+		back-hosts \
+		pma-hosts \
+		traefik-hosts
+# Cоздание сети для контейнеров
+network:
+	docker network inspect traefik_net >/dev/null 2>&1 || docker network create traefik_net
+#
 build:
 	docker compose build
-	# docker compose build && docker compose -f docker-compose-npm.yml build
 #
 #build-npm:
 #	docker compose -f docker-compose-npm.yml build --no-cache
 #
-up:
+up: network
 	docker compose up -d
 #
 restart:
@@ -86,7 +109,9 @@ restart:
 #
 down:
 	docker compose down
-#
+# Удаляет volumes. Использовать с осторожностью!
+down-v:
+	- docker compose down -v --rmi local
 # Очистить кеш докер сборщика
 clean-build-cache:
 	- yes | docker builder prune -a
@@ -94,7 +119,7 @@ clean-build-cache:
 clean: clean-build-cache
 	- docker compose down --rmi local
 #
-lde: git-clone env-copy build up packages-install migration
+lde: hosts git-clone env-copy network build up packages-install migration
 	echo "Local Docker Environment installed" && \
 	echo "Phpmyadmin: http://127.0.0.1/pma/" && \
 	echo "Backend: http://127.0.0.1/backend/" && \
