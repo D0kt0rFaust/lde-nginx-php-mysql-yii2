@@ -94,7 +94,7 @@ clean-build-cache:
 clean: clean-build-cache
 	- docker compose down --rmi local
 #
-lde: git-clone env-copy up packages-install migration
+lde: git-clone env-copy build up packages-install migration
 	echo "Local Docker Environment installed" && \
 	echo "Phpmyadmin: http://127.0.0.1/pma/" && \
 	echo "Backend: http://127.0.0.1/backend/" && \
