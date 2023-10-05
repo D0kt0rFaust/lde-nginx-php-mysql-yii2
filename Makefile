@@ -5,16 +5,19 @@ include .env
 ### Hosts
 #
 traefik-hosts:
+	echo "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}"
 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}' | sudo tee -a "${HOSTS}"
 # mailhog-hosts:
 # 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}' | sudo tee -a "${HOSTS}"
 # kibana-hosts:
 # 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_KIBANA}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_KIBANA}' | sudo tee -a "${HOSTS}"
 pma-hosts:
+	echo "127.0.0.1  ${LOCAL_HOSTNAME_PMA}"
 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_PMA}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_PMA}' | sudo tee -a "${HOSTS}"
 # redis-commander-hosts:
 # 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}' | sudo tee -a "${HOSTS}"
 back-hosts:
+	echo "127.0.0.1  ${LOCAL_HOSTNAME_BACK}"
 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_BACK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_BACK}' | sudo tee -a "${HOSTS}"
 #
 ### Главный сервис бэка
@@ -85,7 +88,7 @@ migration:
 		front-migration
 #
 ### Управляющие команды
-#
+# Добавляем хосты
 hosts:
 	make \
 		back-hosts \
@@ -121,6 +124,8 @@ clean: clean-build-cache
 #
 lde: hosts git-clone env-copy network build up packages-install migration
 	echo "Local Docker Environment installed" && \
-	echo "Phpmyadmin: http://127.0.0.1/pma/" && \
-	echo "Backend: http://127.0.0.1/backend/" && \
-	echo "Frontend: http://127.0.0.1/"
+	echo "Traefik: http://${LOCAL_HOSTNAME_TRAEFIK}:8080/" && \
+	echo "Phpmyadmin: http://${LOCAL_HOSTNAME_PMA}/" && \
+	# echo "Frontend: http://${LOCAL_HOSTNAME_FRONT}/" && \
+	echo "Backend: http://${LOCAL_HOSTNAME_BACK}/backend/"
+	
