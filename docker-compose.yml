@@ -14,7 +14,6 @@ volumes:
   mysql-data:
   elastic-data:
   # mongo-data:
-  # kibana-data:
   # rabbitmq-data:
 
 networks:
@@ -29,7 +28,7 @@ networks:
 
 services:
 
-  # Php бэкенд
+  # Php-приложение
   app-back:
     build:
       context: .
@@ -44,12 +43,9 @@ services:
       - default
       - traefik-net
 
-  # Web-server 
+  # Веб-сервер для php-приложения
   nginx:
     image: nginx:latest
-    # ports:
-    #   - "80:80"
-    #   - "443:443"
     volumes:
       - ./etc/nginx/:/etc/nginx/conf.d/
       - ${LOCAL_CODE_PATH_BACK}:/var/www
@@ -63,20 +59,76 @@ services:
       - "traefik.http.routers.nginx.entrypoints=web"
       - "traefik.http.routers.nginx.rule=Host(`${LOCAL_HOSTNAME_BACK}`)"
       - "traefik.docker.network=traefik_net"
-      # - "traefik.http.services.nginx.loadbalancer.server.port=80"
-      - "traefik.http.routers.nginx.middlewares.compress=true"
-      - "traefik.http.routers.nginx.middlewares=tagme-main-headers"
-      - "traefik.http.middlewares.tagme-main-headers.headers.accessControlAllowHeaders=authorization,x-experience-api-version,content-type,cache-control,x-requested-with,origin,X-CSRF-Token"
+      # - "traefik.http.routers.nginx.middlewares.compress=true"
+      # - "traefik.http.routers.nginx.middlewares=app-back"
+      # - "traefik.http.middlewares.app-back.headers.accessControlAllowHeaders=authorization,x-experience-api-version,content-type,cache-control,x-requested-with,origin,X-CSRF-Token"
+  
+  # Cron-like utils
+  # scheduler:
+  #   image: funkyfuture/deck-chores:1
+  #   # logging: *app-logging
+  #   environment:
+  #     TIMEZONE: Europe/Moscow
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
 
-  #
+  ### Sidecar services
+
+  # Движок для полнотекстового поиска
+  elasticsearch:
+    image: elastic/elasticsearch:7.17.12
+    environment:
+      ES_JAVA_OPTS: "-Xms1024m -Xmx1024m"
+      ELASTICSEARCH_USERNAME: "${LOCAL_ELASTIC_USERNAME}"
+      ELASTICSEARCH_PASSWORD: "${LOCAL_ELASTIC_PASSWORD}"
+      discovery.type: "single-node"
+      bootstrap.memory_lock: "true"
+      xpack.security.enabled: "false"
+      xpack.security.http.ssl.enabled: "false"
+      xpack.monitoring.collection.enabled: "true"
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+
+  # Простейший SMTP-мейлер с интерфейсом
+  # mailhog:
+  #   image: mailhog/mailhog
+  #   # logging: *app-logging
+  #   networks:
+  #     - default
+  #     - traefik-net
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=traefik_net"
+  #     - "traefik.http.routers.mailhog.entrypoints=web"
+  #     - "traefik.http.routers.mailhog.rule=Host(`${LOCAL_HOSTNAME_MAILHOG}`)"
+  #     - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
+
+  # mongo-db:
+  #   image: mongo:6.0
+  #   ports:
+  #     - ${LOCAL_FORWARD_MONGO_DB_PORT}:27017
+  #   volumes:
+  #     - mongo-db-data:/data/db
+  #   ulimits:
+  #     nproc: 65535
+  #     nofile:
+  #       soft: 65535
+  #       hard: 65535
+
+  # Основная БД
   mysql:
     image: mysql:8.0
     ports:
-      - ${MYSQL_FORWARD_DB_PORT}:3306
+      - ${LOCAL_MYSQL_FORWARD_DB_PORT}:3306
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${LOCAL_MYSQL_ROOT_PASSWORD}
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-p${LOCAL_MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -95,7 +147,7 @@ services:
     labels:
       traefik.enable: false
 
-  #
+  # Интерфейс для управления основной БД
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:5.1.3
     # logging: *app-logging
@@ -112,40 +164,6 @@ services:
       - "traefik.docker.network=traefik_net"
       - "traefik.http.routers.phpmyadmin.entrypoints=web"
       - "traefik.http.routers.phpmyadmin.rule=Host(`${LOCAL_HOSTNAME_PMA}`)"
-      - "traefik.http.routers.phpmyadmin.middlewares.compress=true"
-      # - "traefik.http.services.phpmyadmin.loadbalancer.server.port=80"
-
-  #
-  elasticsearch:
-    image: elastic/elasticsearch:7.17.12
-    environment:
-      ES_JAVA_OPTS: "-Xms1024m -Xmx1024m"
-      ELASTICSEARCH_USERNAME: "${ELASTIC_USERNAME}"
-      ELASTICSEARCH_PASSWORD: "${ELASTIC_PASSWORD}"
-      discovery.type: "single-node"
-      bootstrap.memory_lock: "true"
-      xpack.security.enabled: "false"
-      xpack.security.http.ssl.enabled: "false"
-      xpack.monitoring.collection.enabled: "true"
-    volumes:
-      - elastic-data:/usr/share/elasticsearch/data
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
-
-  # mongo-db:
-  #   image: mongo:6.0
-  #   ports:
-  #     - ${LOCAL_FORWARD_MONGO_DB_PORT}:27017
-  #   volumes:
-  #     - mongo-db-data:/data/db
-  #   ulimits:
-  #     nproc: 65535
-  #     nofile:
-  #       soft: 65535
-  #       hard: 65535
 
   # rabbitmq:
   #   image: rabbitmq:3.10-management
@@ -162,6 +180,7 @@ services:
   #     # - RABBITMQ_DEFAULT_PASS=local
   #     # - RABBITMQ_DEFAULT_VHOST=/local
 
+  # Кэширующая БД
   # redis:
   #   image: redis:7-alpine
 

@@ -4,27 +4,27 @@ include .env
 #
 ### Hosts
 #
-traefik-hosts:
-	echo "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}"
-	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}' | sudo tee -a "${HOSTS}"
-# mailhog-hosts:
-# 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}' | sudo tee -a "${HOSTS}"
-# kibana-hosts:
-# 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_KIBANA}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_KIBANA}' | sudo tee -a "${HOSTS}"
-pma-hosts:
-	echo "127.0.0.1  ${LOCAL_HOSTNAME_PMA}"
-	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_PMA}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_PMA}' | sudo tee -a "${HOSTS}"
-# redis-commander-hosts:
-# 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}' | sudo tee -a "${HOSTS}"
 back-hosts:
 	echo "127.0.0.1  ${LOCAL_HOSTNAME_BACK}"
 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_BACK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_BACK}' | sudo tee -a "${HOSTS}"
+mailhog-hosts:
+	echo "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}"
+	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}' | sudo tee -a "${HOSTS}"
+pma-hosts:
+	echo "127.0.0.1  ${LOCAL_HOSTNAME_PMA}"
+	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_PMA}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_PMA}' | sudo tee -a "${HOSTS}"
+redis-commander-hosts:
+	echo "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}"
+	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}' | sudo tee -a "${HOSTS}"
+traefik-hosts:
+	echo "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}"
+	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}' | sudo tee -a "${HOSTS}"
 #
 ### Главный сервис бэка
 #
 back-git-clone:
 	echo "Clone repository: back"
-	git clone ${GIT_REPOSITORY_BACK} -b ${GIT_BRANCH_BACK} ${LOCAL_CODE_PATH_BACK}
+	git clone ${LOCAL_GIT_REPOSITORY_BACK} -b ${LOCAL_GIT_BRANCH_BACK} ${LOCAL_CODE_PATH_BACK}
 #
 back-rm-code:
 	echo "Remove code: back"
@@ -44,7 +44,7 @@ back-migration:
 front-git-clone:
 	echo "front-git-clone: skip"
 	# echo "Clone repository: front"
-	# git clone ${GIT_REPOSITORY_FRONT} -b ${GIT_BRANCH_FRONT} ${LOCAL_CODE_PATH_FRONT}
+	# git clone ${LOCAL_GIT_REPOSITORY_FRONT} -b ${LOCAL_GIT_BRANCH_FRONT} ${LOCAL_CODE_PATH_FRONT}
 #
 front-rm-code:
 	echo "front-rm-code: skip"
@@ -123,9 +123,5 @@ clean: clean-build-cache
 	- docker compose down --rmi local
 #
 lde: hosts git-clone env-copy network build up packages-install migration
-	echo "Local Docker Environment installed" && \
-	echo "Traefik: http://${LOCAL_HOSTNAME_TRAEFIK}:8080/" && \
-	echo "Phpmyadmin: http://${LOCAL_HOSTNAME_PMA}/" && \
-	# echo "Frontend: http://${LOCAL_HOSTNAME_FRONT}/" && \
-	echo "Backend: http://${LOCAL_HOSTNAME_BACK}/backend/"
+	echo "Local Docker Environment installed"
 	
