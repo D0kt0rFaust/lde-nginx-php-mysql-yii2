@@ -170,9 +170,9 @@ make migration
 |-------------------------------------|--------------------|------------------|-------------------------------------------------|
 | http://local.develop/backend/       |                    |                  | Админка                                         |
 | http://local.develop/               |                    |                  | Фронт                                           |
-| http://local.traefik.develop:8080/  |                    |                  | Морда traefik`а                                 |
 | http://local.pma.develop/           | root               | root             | Phpmyadmin                                      |
-| http://local.mailhog.develop/       |                    |                  | Mailhog                                         |
+| http://local.traefik.develop:8080/  |                    |                  | Морда traefik`а                                 |
+| http://local.rabbitmq.develop/      | local              | local            | Морда rabbitmq                                  |
 
 ### Выполнение команд внутри контейнеров
 

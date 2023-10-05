@@ -16,6 +16,9 @@ pma-hosts:
 # redis-commander-hosts:
 # 	echo "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}"
 # 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}' | sudo tee -a "${HOSTS}"
+rabbitmq-hosts:
+	echo "127.0.0.1  ${LOCAL_HOSTNAME_RABBITMQ}"
+	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_RABBITMQ}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_RABBITMQ}' | sudo tee -a "${HOSTS}"
 traefik-hosts:
 	echo "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}"
 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}' | sudo tee -a "${HOSTS}"
@@ -93,6 +96,7 @@ hosts:
 	make \
 		back-hosts \
 		pma-hosts \
+		rabbitmq-hosts \
 		traefik-hosts
 # Cоздание сети для контейнеров
 network:
@@ -122,6 +126,6 @@ clean-build-cache:
 clean: clean-build-cache
 	- docker compose down --rmi local
 #
-lde: hosts git-clone env-copy network build up packages-install migration
+lde: hosts git-clone env-copy network build up packages-install
 	echo "Local Docker Environment installed"
 	

@@ -13,8 +13,8 @@ x-app-args: &app-args
 volumes:
   mysql-data:
   elastic-data:
-  # mongo-data:
-  # rabbitmq-data:
+  mongodb-data:
+  rabbitmq-data:
 
 networks:
  default:
@@ -108,17 +108,23 @@ services:
   #     - "traefik.http.routers.mailhog.rule=Host(`${LOCAL_HOSTNAME_MAILHOG}`)"
   #     - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
 
-  # mongo-db:
-  #   image: mongo:6.0
-  #   ports:
-  #     - ${LOCAL_FORWARD_MONGO_DB_PORT}:27017
-  #   volumes:
-  #     - mongo-db-data:/data/db
-  #   ulimits:
-  #     nproc: 65535
-  #     nofile:
-  #       soft: 65535
-  #       hard: 65535
+  # Вспомогательная БД
+  mongodb:
+    image: mongo:6.0
+    # logging: *app-logging
+    ports:
+      - ${LOCAL_FORWARD_MONGO_DB_PORT}:27017
+    volumes:
+      - mongodb-data:/data/db
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    networks:
+      - default
+    labels:
+      traefik.enable: false
 
   # Основная БД
   mysql:
@@ -165,24 +171,40 @@ services:
       - "traefik.http.routers.phpmyadmin.entrypoints=web"
       - "traefik.http.routers.phpmyadmin.rule=Host(`${LOCAL_HOSTNAME_PMA}`)"
 
-  # rabbitmq:
-  #   image: rabbitmq:3.10-management
-  #   healthcheck:
-  #     test: rabbitmq-diagnostics -q ping
-  #     interval: 30s
-  #     timeout: 30s
-  #     retries: 3
-  #   volumes:
-  #     - rabbitmq-data:/var/lib/rabbitmq/mnesia/rabbit@learninglocker-rabbitmq:cached
-  #   environment:
-  #     - TZ=Europe/Moscow
-  #     # - RABBITMQ_DEFAULT_USER=local
-  #     # - RABBITMQ_DEFAULT_PASS=local
-  #     # - RABBITMQ_DEFAULT_VHOST=/local
+  # Менеджер очередей
+  rabbitmq:
+    image: rabbitmq:3.10-management
+    # logging: *app-logging
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia/rabbit@learninglocker-rabbitmq:cached
+    environment:
+      - TZ=Europe/Moscow
+      - RABBITMQ_DEFAULT_USER=local
+      - RABBITMQ_DEFAULT_PASS=local
+      # - RABBITMQ_DEFAULT_VHOST=/local
+    networks:
+      - default
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_net"
+      - "traefik.http.routers.rabbitmq.entrypoints=web"
+      - "traefik.http.routers.rabbitmq.rule=Host(`${LOCAL_HOSTNAME_RABBITMQ}`)"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
 
   # Кэширующая БД
-  # redis:
-  #   image: redis:7-alpine
+  redis:
+    image: redis:7-alpine
+    # logging: *app-logging
+    networks:
+      - default
+    labels:
+      traefik.enable: false
 
   # Балансир
   traefik:
