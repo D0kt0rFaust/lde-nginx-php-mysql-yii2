@@ -7,15 +7,15 @@ include .env
 back-hosts:
 	echo "127.0.0.1  ${LOCAL_HOSTNAME_BACK}"
 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_BACK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_BACK}' | sudo tee -a "${HOSTS}"
-mailhog-hosts:
-	echo "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}"
-	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}' | sudo tee -a "${HOSTS}"
+# mailhog-hosts:
+# 	echo "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}"
+# 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_MAILHOG}' | sudo tee -a "${HOSTS}"
 pma-hosts:
 	echo "127.0.0.1  ${LOCAL_HOSTNAME_PMA}"
 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_PMA}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_PMA}' | sudo tee -a "${HOSTS}"
-redis-commander-hosts:
-	echo "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}"
-	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}' | sudo tee -a "${HOSTS}"
+# redis-commander-hosts:
+# 	echo "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}"
+# 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_REDIS_COMMANDER}' | sudo tee -a "${HOSTS}"
 traefik-hosts:
 	echo "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}"
 	grep -q "127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}" "${HOSTS}" || echo '127.0.0.1  ${LOCAL_HOSTNAME_TRAEFIK}' | sudo tee -a "${HOSTS}"
